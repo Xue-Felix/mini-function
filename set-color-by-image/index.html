@@ -1,0 +1,126 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-08-11 17:11:17
+ * @LastEditTime: 2021-08-13 16:27:04
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /demo01/index.html
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #images {
+        width: 200px;
+        height: 200px;
+      }
+      #app {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      getMainColor('./images/test.jpg').then(color => {
+        setColor(color)
+      })
+
+      function getMainColor(image = './images/test.jpg') {
+        return new Promise((resolve, reject) => {
+          try {
+            const img = new Image() // 创建img元素
+            img.src = image
+            img.width = '200'
+            img.height = '200'
+            img.style.marginTop = '100px'
+
+            // 创建画布
+            let canvas = document.createElement('canvas')
+
+            // 图片加载完成
+            img.onload = () => {
+              let color = getImageColor(canvas, img)
+              resolve(color)
+            }
+
+            document.getElementById('app').appendChild(img)
+          } catch (e) {
+            reject(e)
+          }
+        })
+      }
+
+      function getImageColor(canvas, img) {
+        let ctx = canvas.getContext('2d')
+        // 将图片画在画布上
+        ctx.drawImage(img, 0, 0)
+        document.body.appendChild(canvas)
+        // 获取像素数据
+        let imgData = ctx.getImageData(0, 0, 100, 100)
+
+        document.body.appendChild(canvas)
+
+        let pixelData = imgData.data
+
+        return getCountsArr(pixelData)
+      }
+
+      // 根据像素计算出现最多次数的颜色
+      function getCountsArr(pixelData) {
+        let rgba = []
+        let rgbaStr = ''
+        let colorList = []
+
+        // 获取颜色
+        for (let i = 0; i < pixelData.length; i += 4) {
+          rgba[0] = pixelData[i]
+          rgba[1] = pixelData[i + 1]
+          rgba[2] = pixelData[i + 2]
+          rgba[3] = pixelData[i + 3]
+
+          if (rgba.indexOf(undefined) !== -1 || pixelData[i + 3] === 0) {
+            continue
+          }
+
+          rgbaStr = rgba.join(',')
+
+          if (rgbaStr in colorList) {
+            ++colorList[rgbaStr]
+          } else {
+            colorList[rgbaStr] = 1
+          }
+        }
+
+        return getRGBA(colorList)
+      }
+
+      // 获取rgba
+      function getRGBA(colorList) {
+        let tempArr = []
+        for (let prop in colorList) {
+          tempArr.push({
+            color: `rgba(${prop})`,
+            count: colorList[prop]
+          })
+        }
+
+        tempArr.sort((a, b) => {
+          return b.count - a.count
+        })
+
+        return tempArr[0].color
+      }
+
+      function setColor(color) {
+        document.body.style.background = color
+      }
+    </script>
+  </body>
+</html>
